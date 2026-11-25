@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TextReport.Features.Health;
+using TextReport.Features.Orders.CreateOrder;
 using TextReport.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,17 @@ builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("postgresql", timeout: TimeSpan.FromSeconds(5));
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<TextReportDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapHealthChecks("/health/ready");
+app.MapCreateOrder();
 
 app.Run();

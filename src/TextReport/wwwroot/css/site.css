@@ -1,0 +1,54 @@
+:root {
+    font: 16px/1.5 system-ui, sans-serif;
+    background: #f3f5f9;
+    color: #182438;
+}
+
+* { box-sizing: border-box; }
+main { width: min(100% - 2rem, 42rem); margin: clamp(2rem, 7vw, 5rem) auto; }
+header { margin-bottom: 1.75rem; }
+.brand { margin: 0; color: #324ca5; font-weight: 750; }
+h1 { margin: .35rem 0; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
+header > p:last-child { margin-bottom: 0; }
+
+form {
+    background: #fff;
+    padding: clamp(1rem, 4vw, 2rem);
+    border: 1px solid #d7dfed;
+    border-radius: 1rem;
+    box-shadow: 0 .5rem 2rem #1824380a;
+}
+
+label { display: block; margin-bottom: .45rem; font-weight: 650; }
+textarea, input, button { font: inherit; }
+textarea, input {
+    display: block;
+    width: 100%;
+    padding: .65rem .8rem;
+    border: 1px solid #8b9bb2;
+    border-radius: .5rem;
+    color: inherit;
+}
+
+textarea { resize: vertical; }
+:focus-visible { outline: 2px solid #324ca5; outline-offset: 3px; }
+[aria-invalid="true"] { border-color: #9c2727; }
+.text-meta, .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.text-meta { justify-content: space-between; margin-top: .35rem; }
+small, .hint { color: #455570; }
+.hint { margin: .6rem 0 1.25rem; font-size: .875rem; }
+.actions { margin-top: 1.25rem; }
+button {
+    background: #324ca5;
+    color: white;
+    border: 0;
+    border-radius: .5rem;
+    padding: .65rem 1rem;
+    cursor: pointer;
+    font-weight: 650;
+}
+button:hover { background: #243a85; }
+button:disabled { opacity: .65; cursor: wait; }
+.error { color: #9c2727; margin: .4rem 0; }
+#status { margin: .8rem 0 0; overflow-wrap: anywhere; }
+#status:empty { margin: 0; }
