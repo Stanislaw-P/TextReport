@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace TextReport.Product.TextAnalysis;
 
 internal sealed record TextAnalysisResult(
@@ -12,7 +14,11 @@ internal sealed record TextAnalysisResult(
     int ReadingTimeSeconds,
     IReadOnlyList<WordFrequency> FrequentWords,
     IReadOnlyList<LongSentence> LongSentences,
-    IReadOnlyList<RepeatedSentence> RepeatedSentences);
+    IReadOnlyList<RepeatedSentence> RepeatedSentences)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? Recommendations { get; init; }
+}
 
 internal sealed record WordFrequency(string Word, int Count);
 internal sealed record LongSentence(string Text, int WordCount);
