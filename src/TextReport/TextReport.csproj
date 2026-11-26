@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MailKit" Version="5.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.34" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.82.0" />
     <PackageReference Include="Npgsql" Version="8.0.9" />

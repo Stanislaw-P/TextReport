@@ -51,7 +51,11 @@ if (builder.Environment.IsDevelopment())
 #pragma warning restore SKEXP0010
     }
     builder.Services.AddScoped<IOrderProcessor, TextReportProcessor>();
-    builder.Services.AddScoped<IEmailSender, DevelopmentEmailSender>();
+    builder.Services.AddOptions<SmtpOptions>()
+        .BindConfiguration("Smtp")
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+    builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
     builder.Services.AddHostedService<PaymentWorker>();
     builder.Services.AddHostedService<OrderWorker>();
     builder.Services.AddHostedService<EmailWorker>();
