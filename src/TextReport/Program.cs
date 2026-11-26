@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using TextReport.Features.Health;
+using TextReport.Features.Notifications.SendEmail;
 using TextReport.Features.Orders.CreateOrder;
+using TextReport.Features.Orders.ProcessOrder;
 using TextReport.Infrastructure.Persistence;
+using TextReport.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,19 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<TextReportDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("postgresql", timeout: TimeSpan.FromSeconds(5));
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddOptions<WorkerOptions>()
+        .BindConfiguration("Workers")
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+    builder.Services.AddScoped<IOrderProcessor, DevelopmentOrderProcessor>();
+    builder.Services.AddScoped<IEmailSender, DevelopmentEmailSender>();
+    builder.Services.AddHostedService<PaymentWorker>();
+    builder.Services.AddHostedService<OrderWorker>();
+    builder.Services.AddHostedService<EmailWorker>();
+}
 
 var app = builder.Build();
 

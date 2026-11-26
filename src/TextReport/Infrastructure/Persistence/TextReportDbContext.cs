@@ -16,7 +16,13 @@ internal sealed class TextReportDbContext(DbContextOptions<TextReportDbContext> 
         {
             order.Property(x => x.Email).HasMaxLength(254);
             order.Property(x => x.InputText).HasMaxLength(15_000);
-            order.HasOne(x => x.Payment).WithOne().HasForeignKey<Payment>(x => x.OrderId);
+            order.HasOne(x => x.Payment).WithOne(x => x.Order).HasForeignKey<Payment>(x => x.OrderId);
+            order.OwnsOne(x => x.ProcessingAttempts);
+            order.OwnsOne(x => x.EmailAttempts);
+            order.Navigation(x => x.ProcessingAttempts).IsRequired();
+            order.Navigation(x => x.EmailAttempts).IsRequired();
+            order.HasIndex(x => new { x.ProcessedAt, x.CreatedAt });
+            order.HasIndex(x => new { x.EmailSentAt, x.ProcessedAt });
         });
 
         modelBuilder.Entity<Payment>(payment =>
@@ -24,6 +30,9 @@ internal sealed class TextReportDbContext(DbContextOptions<TextReportDbContext> 
             payment.Property(x => x.Amount).HasPrecision(12, 2);
             payment.Property(x => x.Currency).HasMaxLength(3);
             payment.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            payment.OwnsOne(x => x.Attempts);
+            payment.Navigation(x => x.Attempts).IsRequired();
+            payment.HasIndex(x => new { x.Status, x.CreatedAt });
         });
     }
 }
