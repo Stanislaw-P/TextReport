@@ -4,6 +4,7 @@ using TextReport.Features.Notifications.SendEmail;
 using TextReport.Features.Orders.CreateOrder;
 using TextReport.Features.Orders.ProcessOrder;
 using TextReport.Infrastructure.Persistence;
+using TextReport.Product.TextAnalysis;
 using TextReport.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,8 @@ if (builder.Environment.IsDevelopment())
         .BindConfiguration("Workers")
         .ValidateDataAnnotations()
         .ValidateOnStart();
-    builder.Services.AddScoped<IOrderProcessor, DevelopmentOrderProcessor>();
+    builder.Services.AddSingleton<TextAnalyzer>();
+    builder.Services.AddScoped<IOrderProcessor, TextReportProcessor>();
     builder.Services.AddScoped<IEmailSender, DevelopmentEmailSender>();
     builder.Services.AddHostedService<PaymentWorker>();
     builder.Services.AddHostedService<OrderWorker>();
