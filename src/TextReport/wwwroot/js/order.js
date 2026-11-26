@@ -50,9 +50,11 @@ form.addEventListener("submit", async (event) => {
         });
 
         if (response.status === 400) {
-            const { errors } = await response.json();
-            showFieldError(text, errors?.text?.[0]);
-            showFieldError(email, errors?.email?.[0]);
+            if (response.headers.get("Content-Type")?.includes("json")) {
+                const { errors } = await response.json();
+                showFieldError(text, errors?.text?.[0]);
+                showFieldError(email, errors?.email?.[0]);
+            }
             status.textContent = "Проверьте данные и повторите отправку.";
             form.querySelector('[aria-invalid="true"]')?.focus();
             return;
