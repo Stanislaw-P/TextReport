@@ -68,7 +68,7 @@ form.addEventListener("submit", async (event) => {
         const { orderId } = await response.json();
         form.reset();
         updateCount();
-        status.textContent = `Заявка принята. Номер заявки: ${orderId}`;
+        status.textContent = `Заявка принята. Номер заявки: ${orderId}. Отчёт отправится на указанный email после обработки.`;
     } catch {
         status.textContent = "Не удалось связаться с сервером. Проверьте подключение.";
     } finally {

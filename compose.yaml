@@ -1,6 +1,25 @@
 name: textreport
 
 services:
+  app:
+    build:
+      context: .
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__TextReport: "Host=postgres;Database=textreport;Username=textreport;Password=textreport-dev"
+      Smtp__Host: mailpit
+      Admin__Username: "${TEXTREPORT_ADMIN_USERNAME:-admin}"
+      Admin__Password: "${TEXTREPORT_ADMIN_PASSWORD:-}"
+      Ai__ApiKey: "${TEXTREPORT_AI_API_KEY:-}"
+    ports:
+      - "127.0.0.1:5080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
   postgres:
     image: postgres:17
     environment:
@@ -8,7 +27,7 @@ services:
       POSTGRES_USER: textreport
       POSTGRES_PASSWORD: textreport-dev
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:

@@ -35,8 +35,11 @@ internal sealed class AdminOrders(
 
             using var db = dbFactory.CreateDbContext();
             var connection = new NpgsqlConnectionStringBuilder(db.Database.GetConnectionString());
-            return connection.Host is "localhost" or "127.0.0.1" or "::1"
-                && connection.Database == "textreport";
+            var localHost = connection.Host is "localhost" or "127.0.0.1" or "::1";
+            var composeHost = connection.Host == "postgres"
+                && string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true",
+                    StringComparison.OrdinalIgnoreCase);
+            return connection.Database == "textreport" && (localHost || composeHost);
         }
     }
 

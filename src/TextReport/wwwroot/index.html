@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TextReport — анализ текста</title>
-    <meta name="description" content="Оставьте заявку на анализ текста в TextReport.">
+    <meta name="description" content="Получите отчёт о тексте на email: статистика, повторы, длинные предложения и рекомендации по редактированию.">
     <link rel="stylesheet" href="/css/site.css">
     <script src="/js/order.js" defer></script>
 </head>
@@ -12,8 +12,13 @@
     <main>
         <header>
             <p class="brand">TextReport</p>
-            <h1>Анализ текста</h1>
-            <p>Отчёт покажет статистику текста, частые слова и слишком длинные предложения.</p>
+            <h1>Отчёт по тексту</h1>
+            <p class="intro">Вставьте текст и укажите email. TextReport проанализирует материал и отправит отчёт на указанный адрес.</p>
+            <ul class="report-features" aria-label="Что входит в отчёт">
+                <li><strong>Объём</strong><span>Слова, абзацы и время чтения</span></li>
+                <li><strong>Читаемость</strong><span>Повторы и длинные предложения</span></li>
+                <li><strong>Рекомендации</strong><span>Советы по правке, если AI доступен</span></li>
+            </ul>
         </header>
         <form id="order-form" method="post" action="/api/orders">
             <noscript><p>Включите JavaScript, чтобы отправить заявку.</p></noscript>

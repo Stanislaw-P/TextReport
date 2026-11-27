@@ -9,7 +9,18 @@ main { width: min(100% - 2rem, 42rem); margin: clamp(2rem, 7vw, 5rem) auto; }
 header { margin-bottom: 1.75rem; }
 .brand { margin: 0; color: #324ca5; font-weight: 750; }
 h1 { margin: .35rem 0; font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; }
-header > p:last-child { margin-bottom: 0; }
+.intro { max-width: 35rem; margin: .65rem 0 1.1rem; color: #455570; }
+.report-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: .7rem 1rem;
+    padding: .8rem 0;
+    margin: 0;
+    border-block: 1px solid #d7dfed;
+    list-style: none;
+}
+.report-features strong, .report-features span { display: block; }
+.report-features span { color: #455570; font-size: .875rem; }
 
 form {
     background: #fff;
