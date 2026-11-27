@@ -30,7 +30,6 @@ public sealed class WorkerPipelineTests
         await using var services = new ServiceCollection()
             .AddLogging()
             .AddDbContextFactory<TextReportDbContext>(options => options.UseNpgsql(connection.ConnectionString))
-            .AddSingleton<DatabaseGate>()
             .AddSingleton<IOrderProcessor>(processor)
             .AddSingleton<IEmailSender>(sender)
             .AddSingleton(Options.Create(new WorkerOptions

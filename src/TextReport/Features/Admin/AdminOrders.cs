@@ -16,7 +16,6 @@ internal enum OrderFilter
 
 internal sealed class AdminOrders(
     IDbContextFactory<TextReportDbContext> dbFactory,
-    DatabaseGate gate,
     IOptions<WorkerOptions> options,
     IHostEnvironment environment,
     AuthenticationStateProvider authentication,
@@ -47,7 +46,6 @@ internal sealed class AdminOrders(
         OrderFilter filter, bool newestFirst, int page, CancellationToken cancellationToken = default)
     {
         await EnsureAuthorizedAsync();
-        using var access = await gate.EnterAsync(DatabaseLane.Requests, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         IQueryable<Order> query = db.Orders.AsNoTracking().Include(x => x.Payment);
         var max = MaxAttempts;
@@ -75,7 +73,6 @@ internal sealed class AdminOrders(
     public async Task<Order?> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         await EnsureAuthorizedAsync();
-        using var access = await gate.EnterAsync(DatabaseLane.Requests, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         return await db.Orders.AsNoTracking().Include(x => x.Payment)
             .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -87,10 +84,6 @@ internal sealed class AdminOrders(
         if (!CanReset || !string.Equals(confirmation.Trim(), ResetConfirmation, StringComparison.Ordinal))
             return false;
 
-        using var requests = await gate.EnterAsync(DatabaseLane.Requests, cancellationToken);
-        using var payments = await gate.EnterAsync(DatabaseLane.Payments, cancellationToken);
-        using var processing = await gate.EnterAsync(DatabaseLane.Processing, cancellationToken);
-        using var emails = await gate.EnterAsync(DatabaseLane.Email, cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         await db.Database.EnsureDeletedAsync();

@@ -30,7 +30,6 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 builder.Services.AddDbContextFactory<TextReportDbContext>(options => options.UseNpgsql(connectionString));
-builder.Services.AddSingleton<DatabaseGate>();
 builder.Services.AddOptions<WorkerOptions>()
     .BindConfiguration("Workers")
     .ValidateDataAnnotations()
