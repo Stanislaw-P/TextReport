@@ -1,10 +1,13 @@
 using Microsoft.Extensions.Options;
 using TextReport.Features;
+using TextReport.Infrastructure.Persistence;
 
 namespace TextReport.Workers;
 
 internal abstract class PollingWorker(
     IServiceScopeFactory scopeFactory,
+    DatabaseGate databaseGate,
+    DatabaseLane lane,
     IOptions<WorkerOptions> options,
     ILogger logger) : BackgroundService
 {
@@ -16,6 +19,7 @@ internal abstract class PollingWorker(
         {
             try
             {
+                using var access = await databaseGate.EnterAsync(lane, stoppingToken);
                 await using var scope = scopeFactory.CreateAsyncScope();
                 await ProcessNextAsync(scope.ServiceProvider, stoppingToken);
             }

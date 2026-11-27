@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+@inject AdminOrders Orders
+
+<header class="bg-white border-bottom">
+    <nav class="container d-flex flex-wrap align-items-center gap-3 py-3" aria-label="Администрирование">
+        <a href="/admin" class="fw-semibold text-dark text-decoration-none">TextReport</a>
+        <AuthorizeView Policy="@AdminAuth.Policy">
+            <Authorized>
+                <a href="/admin">Заявки</a>
+                @if (Orders.CanReset)
+                {
+                    <a href="/admin/database">Тестовая БД</a>
+                }
+                <form method="post" action="/admin/session/logout" class="ms-auto">
+                    <AntiforgeryToken />
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Выйти</button>
+                </form>
+            </Authorized>
+        </AuthorizeView>
+    </nav>
+</header>
+<main class="container py-4">
+    @Body
+</main>

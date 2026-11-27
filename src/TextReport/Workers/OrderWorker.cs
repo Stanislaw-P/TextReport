@@ -7,8 +7,9 @@ namespace TextReport.Workers;
 
 internal sealed class OrderWorker(
     IServiceScopeFactory scopeFactory,
+    DatabaseGate databaseGate,
     IOptions<WorkerOptions> options,
-    ILogger<OrderWorker> logger) : PollingWorker(scopeFactory, options, logger)
+    ILogger<OrderWorker> logger) : PollingWorker(scopeFactory, databaseGate, DatabaseLane.Processing, options, logger)
 {
     protected override async Task ProcessNextAsync(IServiceProvider services, CancellationToken cancellationToken)
     {

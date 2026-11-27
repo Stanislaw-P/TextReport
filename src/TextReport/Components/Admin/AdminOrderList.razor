@@ -1,0 +1,111 @@
+@page "/admin"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuth.Policy)]
+@inject AdminOrders Orders
+
+<h1 class="h2 mb-3">Заявки</h1>
+<div class="row g-3 mb-3">
+    <div class="col-sm-5 col-lg-4">
+        <label for="order-filter" class="form-label">Статус</label>
+        <select id="order-filter" class="form-select" @bind="filter" @bind:after="ChangeFiltersAsync" disabled="@loading">
+            <option value="@OrderFilter.All">Все заявки</option>
+            <option value="@OrderFilter.Payment">Ожидает оплаты</option>
+            <option value="@OrderFilter.Processing">Ожидает обработки</option>
+            <option value="@OrderFilter.Email">Ожидает отправки</option>
+            <option value="@OrderFilter.Completed">Завершена</option>
+            <option value="@OrderFilter.Failed">Попытки исчерпаны</option>
+        </select>
+    </div>
+    <div class="col-sm-5 col-lg-4">
+        <label for="order-sort" class="form-label">Дата создания</label>
+        <select id="order-sort" class="form-select" @bind="sort" @bind:after="ChangeFiltersAsync" disabled="@loading">
+            <option value="newest">Сначала новые</option>
+            <option value="oldest">Сначала старые</option>
+        </select>
+    </div>
+</div>
+
+@if (loading)
+{
+    <p role="status">Загрузка заявок…</p>
+}
+else if (orders.Length == 0)
+{
+    <p class="text-body-secondary">По выбранному фильтру заявок нет.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Email</th><th>Создана (UTC)</th><th>Оплата</th>
+                    <th>Обработка</th><th>Письмо</th><th>Попытки по этапам</th><th>Последняя ошибка</th><th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in orders.Take(AdminOrders.PageSize))
+                {
+                    var stages = AdminOrderStage.For(order);
+                    <tr @key="order.Id">
+                        <td class="text-break"><small>@order.Id</small></td>
+                        <td class="text-break">@order.Email</td>
+                        <td>@FormatDate(order.CreatedAt)</td>
+                        @foreach (var stage in stages)
+                        {
+                            <td>@stage.Status(Orders.MaxAttempts)</td>
+                        }
+                        <td>@string.Join(" / ", stages.Select(stage => stage.Attempts.Count))</td>
+                        <td>@(stages.LastOrDefault(stage => stage.Attempts.LastError is not null)?.Attempts.LastError ?? "—")</td>
+                        <td><a class="btn btn-sm btn-outline-primary" href="@($"/admin/orders/{order.Id}")">Открыть</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <button class="btn btn-outline-secondary" disabled="@(page == 0)" @onclick="PreviousAsync">Назад</button>
+        <span>Страница @(page + 1)</span>
+        <button class="btn btn-outline-secondary" disabled="@(orders.Length <= AdminOrders.PageSize)" @onclick="NextAsync">Дальше</button>
+    </div>
+}
+
+@code {
+    private Order[] orders = [];
+    private OrderFilter filter;
+    private string sort = "newest";
+    private int page;
+    private bool loading;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private Task ChangeFiltersAsync()
+    {
+        page = 0;
+        return LoadAsync();
+    }
+
+    private Task PreviousAsync()
+    {
+        if (page > 0)
+            page--;
+        return LoadAsync();
+    }
+
+    private Task NextAsync()
+    {
+        if (orders.Length > AdminOrders.PageSize)
+            page++;
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        try { orders = await Orders.ListAsync(filter, sort == "newest", page); }
+        finally { loading = false; }
+    }
+
+    private static string FormatDate(DateTimeOffset date) =>
+        date.ToUniversalTime().ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
+}

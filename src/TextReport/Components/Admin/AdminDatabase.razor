@@ -1,0 +1,57 @@
+@page "/admin/database"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuth.Policy)]
+@inject AdminOrders Orders
+@inject ILogger<AdminDatabase> Logger
+
+<h1 class="h2">Тестовая БД</h1>
+@if (Orders.CanReset)
+{
+    <p class="alert alert-warning">Пересоздание удалит все заявки, платежи и отчёты из локальной базы TextReport.</p>
+    <label for="reset-confirmation" class="form-label">Введите @AdminOrders.ResetConfirmation для подтверждения</label>
+    <input id="reset-confirmation" class="form-control mb-3" style="max-width: 22rem"
+           autocomplete="off" @bind="confirmation" @bind:event="oninput" disabled="@resetting" />
+    <button class="btn btn-danger" disabled="@(resetting || confirmation.Trim() != AdminOrders.ResetConfirmation)"
+            @onclick="ResetAsync">Пересоздать базу</button>
+    @if (resetting)
+    {
+        <p class="mt-3" role="status">Ожидаем завершения текущих операций и пересоздаём базу…</p>
+    }
+    @if (feedback is not null)
+    {
+        <p class="mt-3" role="status">@feedback</p>
+    }
+}
+else
+{
+    <p class="alert alert-secondary">Пересоздание доступно только для локальной базы textreport в Development.</p>
+}
+
+@code {
+    private string confirmation = "";
+    private bool resetting;
+    private string? feedback;
+
+    private async Task ResetAsync()
+    {
+        if (resetting)
+            return;
+
+        resetting = true;
+        feedback = null;
+        try
+        {
+            feedback = await Orders.ResetAsync(confirmation) ? "База пересоздана." : "Пересоздание недоступно.";
+            confirmation = "";
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError("Test database reset failed ({ErrorType})", exception.GetType().Name);
+            feedback = "Не удалось пересоздать базу. Подробности в журнале приложения.";
+        }
+        finally
+        {
+            resetting = false;
+        }
+    }
+}

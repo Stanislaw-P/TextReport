@@ -12,7 +12,7 @@ internal static class CreateOrderEndpoint
     }
 
     private static async Task<IResult> HandleAsync(
-        Request? input, TextReportDbContext db, CancellationToken cancellationToken)
+        Request? input, TextReportDbContext db, DatabaseGate gate, CancellationToken cancellationToken)
     {
         var email = input?.Email?.Trim() ?? "";
         var text = input?.Text ?? "";
@@ -46,6 +46,7 @@ internal static class CreateOrderEndpoint
                 CreatedAt = now
             }
         });
+        using var access = await gate.EnterAsync(DatabaseLane.Requests, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
 
         return Results.Json(new { orderId }, statusCode: StatusCodes.Status201Created);

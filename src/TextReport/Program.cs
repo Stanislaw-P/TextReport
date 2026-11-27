@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using TextReport.Components.Admin;
+using TextReport.Features.Admin;
 using TextReport.Features.Health;
 using TextReport.Features.Notifications.SendEmail;
 using TextReport.Features.Orders.CreateOrder;
@@ -26,16 +29,36 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Set ConnectionStrings__TextReport to the PostgreSQL connection string.");
 }
 
-builder.Services.AddDbContext<TextReportDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContextFactory<TextReportDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddSingleton<DatabaseGate>();
+builder.Services.AddOptions<WorkerOptions>()
+    .BindConfiguration("Workers")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "TextReport.Admin";
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+        options.LoginPath = "/admin/login";
+        options.AccessDeniedPath = "/admin/login";
+        options.ExpireTimeSpan = AdminAuth.SessionLifetime;
+        options.SlidingExpiration = false;
+    });
+builder.Services.AddAuthorizationBuilder().AddPolicy(AdminAuth.Policy,
+    policy => policy.RequireAuthenticatedUser().RequireRole(AdminAuth.Role)
+        .RequireAssertion(context => AdminAuth.HasActiveSession(context.User)));
+builder.Services.AddSingleton<AdminCredentials>();
+builder.Services.AddScoped<AdminOrders>();
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("postgresql", timeout: TimeSpan.FromSeconds(5));
 
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddOptions<WorkerOptions>()
-        .BindConfiguration("Workers")
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
     builder.Services.AddSingleton<TextAnalyzer>();
     builder.Services.AddSingleton<AiRecommendations>();
     var ai = builder.Configuration.GetSection("Ai").Get<AiOptions>();
@@ -72,7 +95,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseAntiforgery();
 app.MapHealthChecks("/health/ready");
 app.MapCreateOrder();
+app.MapAdminSession();
+app.MapRazorComponents<AdminApp>().AddInteractiveServerRenderMode();
 
 app.Run();

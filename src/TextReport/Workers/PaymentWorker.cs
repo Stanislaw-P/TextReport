@@ -7,8 +7,9 @@ namespace TextReport.Workers;
 
 internal sealed class PaymentWorker(
     IServiceScopeFactory scopeFactory,
+    DatabaseGate databaseGate,
     IOptions<WorkerOptions> options,
-    ILogger<PaymentWorker> logger) : PollingWorker(scopeFactory, options, logger)
+    ILogger<PaymentWorker> logger) : PollingWorker(scopeFactory, databaseGate, DatabaseLane.Payments, options, logger)
 {
     protected override async Task ProcessNextAsync(IServiceProvider services, CancellationToken cancellationToken)
     {

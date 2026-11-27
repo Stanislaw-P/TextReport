@@ -7,8 +7,9 @@ namespace TextReport.Workers;
 
 internal sealed class EmailWorker(
     IServiceScopeFactory scopeFactory,
+    DatabaseGate databaseGate,
     IOptions<WorkerOptions> options,
-    ILogger<EmailWorker> logger) : PollingWorker(scopeFactory, options, logger)
+    ILogger<EmailWorker> logger) : PollingWorker(scopeFactory, databaseGate, DatabaseLane.Email, options, logger)
 {
     protected override async Task ProcessNextAsync(IServiceProvider services, CancellationToken cancellationToken)
     {

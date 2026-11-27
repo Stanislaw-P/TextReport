@@ -1,0 +1,67 @@
+@page "/admin/orders/{OrderId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize(Policy = AdminAuth.Policy)]
+@inject AdminOrders Orders
+
+<a href="/admin" class="d-inline-block mb-3">К списку заявок</a>
+<h1 class="h2">Детали заявки</h1>
+
+@if (loading)
+{
+    <p role="status">Загрузка заявки…</p>
+}
+else if (order is null)
+{
+    <p class="alert alert-warning">Заявка не найдена.</p>
+}
+else
+{
+    <p class="text-break"><strong>@order.Id</strong> · @order.Email</p>
+    <p>Создана @FormatDate(order.CreatedAt) (UTC)</p>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Этап</th><th>Статус</th><th>Завершён (UTC)</th><th>Попытки</th>
+                    <th>Ошибка</th><th>Следующая попытка (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var stage in AdminOrderStage.For(order))
+                {
+                    <tr>
+                        <th scope="row">@stage.Name</th>
+                        <td>@stage.Status(Orders.MaxAttempts)</td>
+                        <td>@FormatDate(stage.CompletedAt)</td>
+                        <td>@stage.Attempts.Count</td>
+                        <td>@(stage.Attempts.LastError ?? "—")</td>
+                        <td>@FormatDate(stage.Attempts.NextAttemptAt)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="h4">Исходный текст</h2>
+    <pre class="bg-white border rounded p-3" style="white-space: pre-wrap; overflow-wrap: anywhere;">@order.InputText</pre>
+    <AdminReport ResultJson="@order.ResultJson" />
+}
+
+@code {
+    [Parameter]
+    public Guid OrderId { get; set; }
+
+    private Order? order;
+    private bool loading;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        loading = true;
+        try { order = await Orders.GetAsync(OrderId); }
+        finally { loading = false; }
+    }
+
+    private static string FormatDate(DateTimeOffset? date) =>
+        date?.ToUniversalTime().ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture) ?? "—";
+}

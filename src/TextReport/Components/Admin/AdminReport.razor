@@ -1,0 +1,96 @@
+@using System.Text.Json
+
+<h2 class="h4 mt-4">Отчёт</h2>
+@if (report is { } analysis)
+{
+    <dl class="row">
+        <dt class="col-sm-6">Символы (без пробельных знаков)</dt>
+        <dd class="col-sm-6">@analysis.CharacterCount (@analysis.CharacterCountWithoutWhitespace)</dd>
+        <dt class="col-sm-6">Слова (уникальные)</dt>
+        <dd class="col-sm-6">@analysis.WordCount (@analysis.UniqueWordCount)</dd>
+        <dt class="col-sm-6">Предложения и абзацы</dt>
+        <dd class="col-sm-6">@analysis.SentenceCount и @analysis.ParagraphCount</dd>
+        <dt class="col-sm-6">Средняя длина предложения</dt>
+        <dd class="col-sm-6">@analysis.AverageSentenceLengthInWords.ToString("0.##", Russian) слов</dd>
+        <dt class="col-sm-6">Лексическое разнообразие</dt>
+        <dd class="col-sm-6">@analysis.LexicalDiversityPercent.ToString("0.##", Russian)%</dd>
+        <dt class="col-sm-6">Время чтения</dt>
+        <dd class="col-sm-6">@analysis.ReadingTimeSeconds сек</dd>
+    </dl>
+    @if (analysis.FrequentWords is { Count: > 0 } words)
+    {
+        <h3 class="h5">Частые слова</h3>
+        <ul>
+            @foreach (var word in words)
+            {
+                <li>@word.Word — @word.Count</li>
+            }
+        </ul>
+    }
+    @if (analysis.LongSentences is { Count: > 0 } longSentences)
+    {
+        <h3 class="h5">Длинные предложения</h3>
+        <ul>
+            @foreach (var sentence in longSentences)
+            {
+                <li>@sentence.Text (@sentence.WordCount слов)</li>
+            }
+        </ul>
+    }
+    @if (analysis.RepeatedSentences is { Count: > 0 } repeatedSentences)
+    {
+        <h3 class="h5">Повторяющиеся предложения</h3>
+        <ul>
+            @foreach (var sentence in repeatedSentences)
+            {
+                <li>@sentence.Text (@sentence.Count)</li>
+            }
+        </ul>
+    }
+    @if (analysis.Recommendations is { Count: > 0 } recommendations)
+    {
+        <h3 class="h5">Рекомендации AI</h3>
+        <ul>
+            @foreach (var recommendation in recommendations)
+            {
+                <li>@recommendation</li>
+            }
+        </ul>
+    }
+}
+else if (ResultJson is not null)
+{
+    <pre class="bg-white border rounded p-3" style="white-space: pre-wrap; overflow-wrap: anywhere;">@ResultJson</pre>
+}
+else
+{
+    <p class="text-body-secondary">Отчёт пока не сформирован.</p>
+}
+
+@code {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly CultureInfo Russian = CultureInfo.GetCultureInfo("ru-RU");
+    private TextAnalysisResult? report;
+
+    [Parameter]
+    public string? ResultJson { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        report = null;
+        if (ResultJson is null)
+            return;
+
+        try
+        {
+            using var document = JsonDocument.Parse(ResultJson);
+            if (document.RootElement.ValueKind == JsonValueKind.Object
+                && document.RootElement.TryGetProperty("wordCount", out _))
+                report = document.RootElement.Deserialize<TextAnalysisResult>(JsonOptions);
+        }
+        catch (JsonException)
+        {
+            // Older or malformed reports can still be inspected as escaped text.
+        }
+    }
+}

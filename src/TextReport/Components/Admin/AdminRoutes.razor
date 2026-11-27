@@ -1,0 +1,10 @@
+<Router AppAssembly="@typeof(AdminApp).Assembly">
+    <Found Context="route">
+        <AuthorizeRouteView RouteData="route" DefaultLayout="typeof(AdminLayout)">
+            <NotAuthorized>
+                <p>Требуется вход. <a href="/admin/login" data-enhance-nav="false">Войти</a></p>
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="route" Selector="h1" />
+    </Found>
+</Router>

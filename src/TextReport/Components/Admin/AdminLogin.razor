@@ -1,0 +1,33 @@
+@page "/admin/login"
+@inject AdminCredentials Credentials
+
+<section class="card mx-auto" style="max-width: 28rem">
+    <div class="card-body p-4">
+        <h1 class="h3 mb-3">Вход в админку</h1>
+        @if (!Credentials.IsConfigured)
+        {
+            <p class="alert alert-warning">Задайте Admin:Username и Admin:Password в локальных настройках и перезапустите приложение.</p>
+        }
+        @if (Error == "invalid")
+        {
+            <p class="alert alert-danger" role="alert">Неверный логин или пароль.</p>
+        }
+        <form method="post" action="/admin/session/login">
+            <AntiforgeryToken />
+            <div class="mb-3">
+                <label for="admin-username" class="form-label">Логин</label>
+                <input id="admin-username" name="username" class="form-control" autocomplete="username" required />
+            </div>
+            <div class="mb-3">
+                <label for="admin-password" class="form-label">Пароль</label>
+                <input id="admin-password" name="password" type="password" class="form-control" autocomplete="current-password" required />
+            </div>
+            <button type="submit" class="btn btn-primary" disabled="@(!Credentials.IsConfigured)">Войти</button>
+        </form>
+    </div>
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    private string? Error { get; set; }
+}
